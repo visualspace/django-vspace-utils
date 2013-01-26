@@ -1,0 +1,10 @@
+{% load localeurl_tags %}{% load locale_url from localeurl_future %}<?xml version='1.0' encoding='UTF-8'?>
+<sitemapindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/siteindex.xsd"
+         xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{% for lang in LANGUAGES  %}
+<sitemap>
+      <loc>http{% if request.is_secure %}s{% endif %}://{{ request.get_host }}{% locale_url lang.0 "django.contrib.sitemaps.views.sitemap" %}</loc>
+   </sitemap>
+{% endfor %}
+</sitemapindex>
