@@ -1,0 +1,4 @@
+include setup.py README.rst MANIFEST.in LICENSE AUTHORS
+recursive-include templates *
+recursive-include locale *
+recursive-include static *
