@@ -2,3 +2,5 @@ Django>=1.4.3
 django-tinymce
 sorl-thumbnail
 py_w3c
+templatetag_sugar
+dnspython
