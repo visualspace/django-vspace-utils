@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 from django.db import models
 
 
-def get_next_ordering(model, field_name='sort_order', increment=10):
+def get_next_ordering(model_or_qs, field_name='sort_order', increment=10):
     """
     Get the next available value for the sortorder for a model.
 
@@ -16,7 +16,16 @@ def get_next_ordering(model, field_name='sort_order', increment=10):
             )
 
     """
-    aggregate = model.objects.aggregate(latest=models.Max(field_name))
+    if isinstance(model_or_qs, models.base.ModelBase):
+        # If a model has been given, create QuerySet for all objects
+        qs = model_or_qs.objects.all()
+    else:
+        # No model has been given, assert that the input is in fact
+        # a QuerySet.
+        assert isinstance(model_or_qs, models.query.QuerySet)
+        qs = model_or_qs
+
+    aggregate = qs.aggregate(latest=models.Max(field_name))
     latest = aggregate['latest']
 
     if latest:
