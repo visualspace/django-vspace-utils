@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 import platform
 import re
 import urllib
@@ -100,6 +104,10 @@ class URLValidator(RegexValidator):
                     handlers.append(urllib2.HTTPSHandler())
                 except:
                     #Python isn't compiled with SSL support
+                    logger.debug(
+                        'Not validating SSL URL\'s, Python isn\'t compiled '
+                        'with SSL support'
+                    )
                     pass
                 map(opener.add_handler, handlers)
                 if platform.python_version_tuple() >= (2, 6):
@@ -133,7 +141,10 @@ class RelativeURLValidator(URLValidator):
             # Attempt validation in the superclass: checks full-fledged URL's
             super(RelativeURLValidator, self).__call__(value)
         except ValidationError as e:
-            if self.verify_exists:
+            if self.verify_exists and value.startswith('/'):
+                # The URL was invalid, possibly because it is a local URL.
+                # If it starts with '/', attempt to resolve it locally.
+
                 broken_error = ValidationError(
                     _(u'This URL appears to be a broken link.'),
                     code='invalid_link'
@@ -142,11 +153,14 @@ class RelativeURLValidator(URLValidator):
                 # Attempt local validation
                 try:
                     resolve(value)
+
                 except Http404:
+                    logger.info('Could not resolve local URL \'%s\'', value)
                     raise broken_error
 
-            # Re-raise original error
-            raise e
+            else:
+                # Re-raise original error
+                raise e
 
 
 class FileValidator(object):
