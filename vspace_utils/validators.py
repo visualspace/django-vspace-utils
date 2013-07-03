@@ -1,5 +1,6 @@
 import platform
 import re
+import urllib
 import urllib2
 import urlparse
 
@@ -189,7 +190,7 @@ class FileValidator(object):
         ext = splitext(value.name)[1][1:].lower()
         if self.allowed_extensions and not ext in self.allowed_extensions:
             message = self.extension_message % {
-                'extension' : ext,
+                'extension': ext,
                 'allowed_extensions': ', '.join(self.allowed_extensions)
             }
 
