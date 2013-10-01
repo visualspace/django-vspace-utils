@@ -6,37 +6,43 @@ It takes two optional parameters: the language to hyphenate in and the minimum w
 Usage example:
 
 {% load hyphenation %}
-{{ object.text|hyphenate:"nl-nl,6" }}
+{{ object.text|hyphenate:"nl,7" }}
 """
+import locale
 
-from hyphen import hyphenator, dictools
+from hyphen import Hyphenator, dictools
 
 from django.utils.safestring import mark_safe
+from django.utils.translation import get_language
 
 from django import template
 register = template.Library()
 
-from django.conf import settings
-
 
 @register.filter
 def hyphenate(value, arg=None, autoescape=None):
+    # Default minimal length
+    minlen = 6
+
     if arg:
         args = arg.split(u',')
         code = args[0]
+
+        # Override minimal length, if specified
         if len(args) > 1:
             minlen = int(args[1])
-        else:
-            minlen = 5
     else:
-        code = settings.LANGUAGE_CODE
-    s = code.split(u'-')
-    lang = s[0].lower() + u'_' + s[1].upper()
+        # No language specified, use Django's current
+        code = get_language()
 
+    # Normalize the locale code, ignoring a potential encoding suffix
+    lang = locale.normalize(code).split('.')[0]
+
+    # Make sure the proper language is installed
     if not dictools.is_installed(lang):
         dictools.install(lang)
 
-    h = hyphenator(lang)
+    h = Hyphenator(lang)
     new = []
     for word in value.split(u' '):
         if len(word) > minlen and word.isalpha():
