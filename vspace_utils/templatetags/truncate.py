@@ -22,3 +22,18 @@ def truncatechars_html(value, arg):
     except ValueError: # invalid literal for int()
         return value # Fail silently.
     return Truncator(value).chars(length, html=True, truncate=' ...')
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def truncatechars_word(value, arg):
+    """
+    Truncate after certain number of chars but only on word boundaries.
+
+    Argument: Number of chars to truncate after.
+    """
+    try:
+        length = int(arg)
+    except ValueError: # invalid literal for int()
+        return value # Fail silently.
+    return Truncator(value).chars(length, whole_words=True)

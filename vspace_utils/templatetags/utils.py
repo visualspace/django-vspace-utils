@@ -1,5 +1,6 @@
 import re
 import unicodedata
+import string
 
 from django.db.models import Q
 from django.db.models.sql.query import get_order_dir
@@ -92,7 +93,7 @@ class Truncator(SimpleLazyObject):
             return text
         return '%s%s' % (text, truncate)
 
-    def chars(self, num, truncate=None, html=False):
+    def chars(self, num, truncate=None, html=False, whole_words=False):
         """
         Returns the text truncated to be no longer than the specified number
         of characters.
@@ -100,6 +101,8 @@ class Truncator(SimpleLazyObject):
         Takes an optional argument of what should be used to notify that the
         string has been truncated, defaulting to a translatable string of an
         ellipsis (...).
+
+        If whole_word=True, truncation only truncates at word boundaries.
         """
         length = int(num)
         text = unicodedata.normalize('NFC', self._wrapped)
@@ -112,11 +115,11 @@ class Truncator(SimpleLazyObject):
                 if truncate_len == 0:
                     break
         if html:
-            return self._html_chars(truncate_len, truncate, text)
-        return self._text_chars(length, truncate)
+            return self._html_chars(truncate_len, truncate, text, whole_words)
+        return self._text_chars(length, truncate, text, whole_words)
     chars = allow_lazy(chars)
 
-    def _text_chars(self, length, truncate, text):
+    def _text_chars(self, length, truncate, text, whole_words):
         """
         Truncates a string after a certain number of chars.
         """
@@ -128,17 +131,26 @@ class Truncator(SimpleLazyObject):
                 # as adding to the string length
                 continue
             s_len += 1
-            if end_index is None and s_len > truncate_len:
+            if end_index is None and s_len > length:
                 end_index = i
             if s_len > length:
+                truncated = text[:end_index or 0]
+
+                if whole_words and not char.isspace():
+                    # Current character is whitespace, find previous
+                    # whole word
+                    truncated = truncated.rsplit(' ', 1)[0]
+
+                    # Remove trailing whitespace and punctuation
+                    truncated = truncated.rstrip(string.whitespace + string.punctuation)
+
                 # Return the truncated string
-                return self.add_truncation_text(text[:end_index or 0],
-                                                truncate)
+                return self.add_truncation_text(truncated, truncate)
 
         # Return the original string since no truncation was necessary
         return text
 
-    def _html_chars(self, length, truncate, text):
+    def _html_chars(self, length, truncate, text, whole_words):
         """
         Truncates HTML to a certain number of chars (not counting tags and
         comments). Closes opened tags if they were correctly closed in the
