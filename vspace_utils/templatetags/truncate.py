@@ -21,7 +21,7 @@ def truncatechars_html(value, arg):
         length = int(arg)
     except ValueError: # invalid literal for int()
         return value # Fail silently.
-    return Truncator(value).chars(length, html=True, truncate=' ...')
+    return Truncator(value).chars(length, html=True, truncate=' &hellip;')
 
 
 @register.filter(is_safe=True)
@@ -53,4 +53,6 @@ def truncatechars_html_words(value, arg):
         length = int(arg)
     except ValueError: # invalid literal for int()
         return value # Fail silently.
-    return Truncator(value).chars(length, html=True, whole_words=True)
+    return Truncator(value).chars(
+        length, html=True, whole_words=True, truncate='&hellip;'
+    )
