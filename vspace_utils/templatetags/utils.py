@@ -136,13 +136,16 @@ class Truncator(SimpleLazyObject):
             if s_len > length:
                 truncated = text[:end_index or 0]
 
-                if whole_words and not char.isspace():
-                    # Current character is whitespace, find previous
-                    # whole word
-                    truncated = truncated.rsplit(' ', 1)[0]
+                if whole_words:
+                    if not char.isspace():
+                        # Current character is whitespace, find previous
+                        # whole word
+                        truncated = truncated.rsplit(' ', 1)[0]
 
                     # Remove trailing whitespace and punctuation
-                    truncated = truncated.rstrip(string.whitespace + string.punctuation)
+                    truncated = truncated.rstrip(
+                        string.whitespace + string.punctuation
+                    )
 
                 # Return the truncated string
                 return self.add_truncation_text(truncated, truncate)
@@ -173,6 +176,7 @@ class Truncator(SimpleLazyObject):
         while chars < length:
             if pos == text_length:
                 break
+
             # Check for tag
             tag = re_tag.match(text, pos)
             if not tag or end_text_pos:
@@ -185,6 +189,7 @@ class Truncator(SimpleLazyObject):
                 continue
             else:
                 pos = tag.end(0)
+
             closing_tag, tagname, self_closing = tag.groups()
             # Element names are always case-insensitive
             tagname = tagname.lower()
@@ -203,16 +208,35 @@ class Truncator(SimpleLazyObject):
             else:
                 # Add it to the start of the open tags list
                 open_tags.insert(0, tagname)
+
         if chars < length:
             # Don't try to close tags if we don't need to truncate
             return text
+
         out = text[:end_text_pos]
+
+        last_char = text[end_text_pos-1]
+
+        # string.punctuation without > and ; (tags and entities, resp.)
+        punctuation = '!"#$%&\'()*+,-./:<=?@[\\]^_`{|}~'
+
+        if whole_words:
+            if not last_char.isspace():
+                # Current character is whitespace, find previous
+                # whole word
+                out = out.rsplit(' ', 1)[0]
+
+            # Remove trailing whitespace and punctuation
+            out = out.rstrip(string.whitespace + punctuation)
+
         truncate_text = self.add_truncation_text('', truncate)
         if truncate_text:
             out += truncate_text
+
         # Close any tags still open
         for tag in open_tags:
             out += '</%s>' % tag
+
         # Return string
         return out
 

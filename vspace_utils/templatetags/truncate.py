@@ -26,7 +26,7 @@ def truncatechars_html(value, arg):
 
 @register.filter(is_safe=True)
 @stringfilter
-def truncatechars_word(value, arg):
+def truncatechars_words(value, arg):
     """
     Truncate after certain number of chars but only on word boundaries.
 
@@ -37,3 +37,20 @@ def truncatechars_word(value, arg):
     except ValueError: # invalid literal for int()
         return value # Fail silently.
     return Truncator(value).chars(length, whole_words=True)
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def truncatechars_html_words(value, arg):
+    """
+    Truncates HTML after a certain number of chars but only on word boundaries.
+
+    Argument: Number of chars to truncate after.
+
+    Newlines in the HTML are preserved.
+    """
+    try:
+        length = int(arg)
+    except ValueError: # invalid literal for int()
+        return value # Fail silently.
+    return Truncator(value).chars(length, html=True, whole_words=True)
