@@ -3,7 +3,8 @@ logger = logging.getLogger(__name__)
 
 # Note: we need dnspython for this to work
 # Install with `pip install dnspython`
-import dns.resolver, dns.exception
+import dns.resolver
+import dns.exception
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -26,12 +27,13 @@ class ValidatingEmailField(forms.EmailField):
         try:
             logger.debug('Checking domain %s', domain)
 
-            results = dns.resolver.query(domain, 'MX')
+            dns.resolver.query(domain, 'MX')
 
         except dns.exception.DNSException, e:
             logger.debug('Domain %s does not exist.', e)
 
             raise forms.ValidationError(_(
-                u"The domain %s could not be found.") % domain)
+                u"The domain %s could not be found.") % domain
+            )
 
         return email
