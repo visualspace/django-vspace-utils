@@ -3,6 +3,9 @@ logger = logging.getLogger(__name__)
 
 from django.views.generic import TemplateView
 
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponseServerError
 
@@ -71,3 +74,11 @@ class InternationalizedSitemapIndexView(TemplateView):
             content_type="application/xml",
             **response_kwargs
         )
+
+
+class ProtectedViewMixin(object):
+    """ View mixin making sure the user is logged in. """
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ProtectedViewMixin, self).dispatch(*args, **kwargs)
