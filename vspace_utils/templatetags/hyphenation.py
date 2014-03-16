@@ -8,6 +8,7 @@ Usage example:
 {% load hyphenation %}
 {{ object.text|hyphenate:"nl,7" }}
 """
+
 import locale
 
 from hyphen import Hyphenator, dictools
