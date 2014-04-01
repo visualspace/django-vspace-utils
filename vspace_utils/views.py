@@ -28,7 +28,7 @@ def handler500(request, template_name='500.html'):
         context = Context({'request': request})
 
     # You need to create a 500.html template.
-    t = loader.get_template('vspace_utils/500.html')
+    t = loader.get_template('500.html')
     return HttpResponseServerError(t.render(context))
 
 
