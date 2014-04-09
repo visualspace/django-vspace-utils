@@ -16,6 +16,7 @@ from django.template.defaultfilters import filesizeformat
 
 from django.core.validators import RegexValidator
 from django.core.urlresolvers import resolve
+from django.core.files.images import get_image_dimensions
 from django.http import Http404
 from django.utils.encoding import smart_unicode
 
@@ -234,6 +235,77 @@ class FileValidator(object):
             message = self.min_size_message % {
                 'size': filesizeformat(filesize),
                 'allowed_size': filesizeformat(self.min_size)
+            }
+
+            raise ValidationError(message)
+
+
+class ImageDimensionsValidator(object):
+    """
+    Validate the dimensions for image fields.
+
+    Initialization parameters:
+        allowed_sizes: iterable with allowed (width, height) tuples
+            ie. [(200, 100), (2000, 5000)]
+        min_size: minimal (width, height) tuple
+        max_size: minimal (width, height) tuple
+
+    Note that allowed_sizes cannot be used together with min_size or max_size.
+
+    Usage example::
+
+        MyModel(models.Model):
+            image = ImageField(upload_to='mymodel_images',
+                validators=[
+                    ImageDimensionsValidator(allowed_sizes=[(width, heigt)])
+                ])
+            """
+
+    invalid_size_message = _('Invalid image size %(size)s. Allowed sizes: %(allowed_sizes)s')
+    min_size_message = _('Invalid image size %(size)s. Minimum size: %(min_size)s')
+    max_size_message = _('Invalid image size %(size)s. Maximum size: %(max_size)s')
+
+    def __init__(self, min_size=None, max_size=None, allowed_sizes=[]):
+        assert allowed_sizes and not (min_size or max_size), \
+            'Either allowed sizes or a combination of min_size and max_size may be set.'
+
+        self.allowed_sizes = allowed_sizes
+
+        self.min_size = min_size
+        self.max_size = max_size
+
+    def __call__(self, value):
+        width, height = get_image_dimensions(value.file)
+
+        if self.allowed_sizes and not (width, height) in self.allowed_sizes:
+            message = self.invalid_size_message % {
+                'size': '%sx%s' % (width, height),
+                'allowed_sizes': ', '.join(
+                    map(
+                        lambda size: '%sx%s' % (size[0], size[1]),
+                        self.allowed_sizes
+                    )
+                )
+            }
+
+            raise ValidationError(message)
+
+        if self.min_size and (
+            width < self.min_size[0] or height < self.min_size[1]
+        ):
+            message = self.min_size_message % {
+                'size': '%sx%s' % (width, height),
+                'min_size': self.min_size
+            }
+
+            raise ValidationError(message)
+
+        if self.max_size and (
+            width > self.max_size[0] or height > self.max_size[1]
+        ):
+            message = self.max_size_message % {
+                'size': '%sx%s' % (width, height),
+                'max_size': self.max_size
             }
 
             raise ValidationError(message)
