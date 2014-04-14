@@ -330,3 +330,13 @@ class Truncator(SimpleLazyObject):
             out += '</%s>' % tag
         # Return string
         return out
+
+
+def split_sequence(ls, columns):
+    """ Split a sequence into a list of equally sized columns. """
+
+    start = 0
+    for i in xrange(columns):
+        stop = start + len(ls[i::columns])
+        yield ls[start:stop]
+        start = stop
