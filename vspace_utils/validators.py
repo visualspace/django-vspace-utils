@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import filesizeformat
 
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, BaseValidator
 from django.core.urlresolvers import resolve
 from django.core.files.images import get_image_dimensions
 from django.http import Http404
@@ -309,3 +309,13 @@ class ImageDimensionsValidator(object):
             }
 
             raise ValidationError(message)
+
+
+class ExactLengthValidator(BaseValidator):
+    compare = lambda self, a, b: a != b
+    clean = lambda self, x: len(x)
+    message = _(
+        u'Ensure this value is exactly %(limit_value)d characters '
+        u'(it has %(show_value)d).'
+    )
+    code = 'exact_length'
