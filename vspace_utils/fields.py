@@ -24,6 +24,10 @@ class ValidatingEmailField(forms.EmailField):
     def clean(self, value):
         email = super(ValidatingEmailField, self).clean(value)
 
+        if not email:
+            # Super validation succeeded but email is empty (not required)
+            return email
+
         domain = email.split('@')[1]
 
         # Make sure the domain exists
