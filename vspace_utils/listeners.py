@@ -1,8 +1,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from functools import update_wrapper
+
 from django.utils.decorators import classonlymethod
-from django.utils.functional import update_wrapper
 from django.utils import translation
 from django.utils.translation import get_language
 
