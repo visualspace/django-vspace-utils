@@ -78,12 +78,12 @@ class SitemapTesterMixin(object):
         # Parse the sitemap and URL's, implicitly validating Sitemap
         urlset = UrlSet.from_str(
             response.content, validate=self.validate_sitemap)
-        urls = urlset.get_urls()
+        urls = [el.loc for el in urlset.get_urls()]
 
         # Test each URL
         tested = 0
-        for el in urls:
-            self._test_url(el.loc)
+        for url in urls:
+            self._test_url(url)
             tested += 1
 
         logger.info('%d URL\'s tested for sitemap %s', tested, url)
