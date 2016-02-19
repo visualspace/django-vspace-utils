@@ -48,7 +48,10 @@ class SitemapTesterMixin(object):
         response = self.client.get(url, follow=True)
 
         # Assert return status
-        self.assertEquals(response.status_code, 200)
+        self.assertEquals(
+            response.status_code, 200,
+            'Wrong status code %d for %s' % (response.status_code, url)
+        )
 
         # Assert non-empty content
         self.assertTrue(response.content)
