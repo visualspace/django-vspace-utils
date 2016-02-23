@@ -19,6 +19,7 @@ from django.core.urlresolvers import resolve
 from django.core.files.images import get_image_dimensions
 from django.http import Http404
 from django.utils.encoding import smart_unicode
+from django.utils.deconstruct import deconstructible
 
 from django.conf import settings
 
@@ -166,6 +167,7 @@ class RelativeURLValidator(URLValidator):
                 raise e
 
 
+@deconstructible
 class FileValidator(object):
     """
     Validator for files, checking the size, extension and mimetype.
@@ -198,6 +200,15 @@ class FileValidator(object):
         self.allowed_mimetypes = kwargs.pop('allowed_mimetypes', None)
         self.min_size = kwargs.pop('min_size', 0)
         self.max_size = kwargs.pop('max_size', None)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, FileValidator) and
+            self.allowed_extensions == other.allowed_extensions and
+            self.allowed_mimetypes == other.allowed_mimetypes and
+            self.min_size == other.min_size and
+            self.max_size == other.max_size
+        )
 
     def __call__(self, value):
         """
@@ -242,6 +253,7 @@ class FileValidator(object):
             raise ValidationError(message)
 
 
+@deconstructible
 class ImageDimensionsValidator(object):
     """
     Validate the dimensions for image fields.
@@ -275,6 +287,14 @@ class ImageDimensionsValidator(object):
 
         self.min_size = min_size
         self.max_size = max_size
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, ImageDimensionsValidator) and
+            self.allowed_sizes == other.allowed_sizes and
+            self.min_size == other.min_size and
+            self.max_size == other.max_size
+        )
 
     def __call__(self, value):
         width, height = get_image_dimensions(value.file)
