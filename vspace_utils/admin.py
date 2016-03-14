@@ -1,13 +1,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from functools import update_wrapper
+
 from django.http import Http404
 
-from functools import update_wrapper
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_text
 
 from django.contrib.admin.utils import unquote
-from django.utils.encoding import force_unicode
 
 
 class ExtendibleModelAdminMixin(object):
@@ -15,7 +16,7 @@ class ExtendibleModelAdminMixin(object):
             opts = self.model._meta
 
             try:
-                obj = self.queryset(request).get(pk=unquote(object_id))
+                obj = self.get_queryset(request).get(pk=unquote(object_id))
             except self.model.DoesNotExist:
                 # Don't raise Http404 just yet, because we haven't checked
                 # permissions yet. We don't want an unauthenticated user to
@@ -28,8 +29,8 @@ class ExtendibleModelAdminMixin(object):
                         '%(name)s object with primary key '
                         '%(key)r does not exist.'
                     ) % {
-                        'name': force_unicode(opts.verbose_name),
-                        'key': unicode(object_id)
+                        'name': force_text(opts.verbose_name),
+                        'key': force_text(object_id)
                     }
                 )
 
@@ -41,7 +42,7 @@ class ExtendibleModelAdminMixin(object):
         return update_wrapper(wrapper, view)
 
     def _view_name(self, name):
-        info = self.model._meta.app_label, self.model._meta.module_name, name
+        info = self.model._meta.app_label, self.model._meta.model_name, name
 
         return '%s_%s_%s' % info
 
